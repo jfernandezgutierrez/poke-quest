@@ -2,7 +2,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, doc, setDoc, getDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, setDoc, getDocs,getDoc  } from "firebase/firestore";
 
 // Importa otros servicios que necesites de Firebase
 
@@ -30,5 +30,6 @@ const firebaseConfig = {
     collection,
     doc,
     setDoc,
-    getDoc // Asegúrate de exportar getDoc
+    getDoc,
+    getDocs // Asegúrate de exportar getDoc
   };

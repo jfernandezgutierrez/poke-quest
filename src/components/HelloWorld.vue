@@ -30,10 +30,13 @@
           </v-btn>
         </v-form>
         <v-divider class="my-4"></v-divider>
-        <v-btn color="secondary" @click="loginWithGoogle" :loading="loading">
+       <!--<v-btn color="secondary" @click="loginWithGoogle" :loading="loading">
           <v-icon left>mdi-google</v-icon>
           Sign in with Google
-        </v-btn>
+        </v-btn>  <v-btn color="secondary" @click="loginWithGoogle" :loading="loading">
+          <v-icon left>mdi-google</v-icon>
+          Sign in with Google
+        </v-btn>-->
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="toggleMode">
@@ -49,14 +52,14 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { auth, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, db, collection, doc, setDoc } from '../firebase';
 import { signInWithPopup } from 'firebase/auth';
-
+import { getFirestore } from "firebase/firestore"; 
 const email = ref('');
 const password = ref('');
 const name = ref(''); // New ref for name
 const isLoginMode = ref(true);
 const loading = ref(false);
 const router = useRouter();
-
+console.log("helloworld")
 const toggleMode = () => {
   isLoginMode.value = !isLoginMode.value;
 };
@@ -67,17 +70,17 @@ const handleSubmit = async () => {
     let userCredential;
     if (isLoginMode.value) {
       userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
-      alert('Logged in successfully');
+     
     } else {
       userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value);
-      alert('Registered successfully');
+     
     }
     await saveUserToDatabase(userCredential.user, name.value); // Pass name to saveUserToDatabase
     localStorage.setItem('user', JSON.stringify(userCredential.user));
-    router.push('/profile');
+    
   } catch (error) {
     console.error('Authentication error:', error);
-    alert(error.message);
+    
   } finally {
     loading.value = false;
   }
@@ -87,27 +90,38 @@ const loginWithGoogle = async () => {
   loading.value = true;
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    alert(`Logged in as ${result.user.displayName}`);
     await saveUserToDatabase(result.user); // No name needed for Google sign-in
     localStorage.setItem('user', JSON.stringify(result.user));
-    router.push('/profile');
+    
   } catch (error) {
     console.error('Error logging in with Google:', error);
-    alert('Failed to log in with Google');
   } finally {
     loading.value = false;
   }
 };
 
-const saveUserToDatabase = async (user, userName = '') => { // Optional name parameter
+const saveUserToDatabase = async (user, userName = '') => {
   try {
+    // Asegúrate de que los valores están siendo obtenidos correctamente
+    console.log('User ID:', user.uid);
+    console.log('User Email:', user.email);
+    console.log('User Display Name:', user.displayName);
+    console.log('Provided Name:', userName);
+
     const userRef = doc(collection(db, "usuarios"), user.uid);
+    
+    // Guardar los datos en Firestore
+    debugger
+    console.log(name);
+    
     await setDoc(userRef, {
-      email: user.email,
-      uid: user.uid,
-      name: userName || user.displayName || '' // Use the provided name or the user's display name
+      email: user.email || '', // Usar valor vacío como fallback
+      uid: user.uid || '', // Usar valor vacío como fallback
+      name: userName || user.displayName || '' // Usar el nombre proporcionado, el nombre de Google o vacío
     });
+
     console.log('User added to Firestore:', user.uid);
+    router.push('/profile');
   } catch (error) {
     console.error('Error saving user to Firestore:', error);
   }
